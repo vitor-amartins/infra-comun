@@ -16,8 +16,8 @@ def choseNumber():
 def getIPs(info, peers):
     ip = []
     j = 1
-    i = info[1].find("IP: ") + len("IP: ")
-    while (j < peers):
+    while (j <= peers):
+        i = info[j].find("IP: ") + len("IP: ")
         str1 = ''
         while(info[j][i] != ' '):
             str1 += info[j][i]
