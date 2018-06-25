@@ -9,7 +9,7 @@ orig = (HOST, PORT)
 
 ID_PARTIDA = 0
 ID_JOGADOR = 0
-QNT_JOGADORES = 3
+QNT_JOGADORES = 2
 
 def updateStatusForPlayers(partida):
     msg = partida.getPlayers()
