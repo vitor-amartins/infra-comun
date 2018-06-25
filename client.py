@@ -13,6 +13,20 @@ def choseNumber():
         number = input()
     return number
 
+def getIPs(info, peers):
+    ip = []
+    j = 1
+    i = info[1].find("IP: ") + len("IP: ")
+    while (j < peers):
+        str1 = ''
+        while(info[j][i] != ' '):
+            str1 += info[j][i]
+            i += 1
+        print(str1)
+        j += 1
+        ip.append(str1)
+    return ip
+
 print("Deseja entrar no jogo? (Y / N)")
 msg = input()
 
@@ -25,8 +39,10 @@ while True:
     print(msg)
     PEERS = int(msg[msg.find("Jogadores necessários: ") + len("Jogadores necessários: ")])
     info = msg.split('\n')
+    
     if (len(info) - 2 == PEERS):
         print("Link Start")
+        ips = getIPs(info, PEERS)
         n = choseNumber()
         print(n)
         # Enviar a todos os IP's
