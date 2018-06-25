@@ -9,6 +9,7 @@ orig = (HOST, PORT)
 
 ID_PARTIDA = 0
 ID_JOGADOR = 0
+QNT_JOGADORES = 3
 
 def updateStatusForPlayers(partida):
     msg = partida.getPlayers()
@@ -38,7 +39,7 @@ while True:
         partida.addPlayer(player)
         updateStatusForPlayers(partida)
     else:
-        if (partida.count < 5):
+        if (partida.count < QNT_JOGADORES):
             partida.addPlayer(player)
             updateStatusForPlayers(partida)
         else:
