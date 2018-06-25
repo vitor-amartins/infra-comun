@@ -35,7 +35,7 @@ while True:
     player = Player(getIdJogador(), ip, port)
     dest = (ip, port)
     if (partida is None):
-        partida = Partida(getIdPartida())
+        partida = Partida(getIdPartida(), QNT_JOGADORES)
         partida.addPlayer(player)
         updateStatusForPlayers(partida)
     else:

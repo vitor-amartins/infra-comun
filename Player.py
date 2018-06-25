@@ -5,4 +5,4 @@ class Player:
         self.port = port
 
     def getPlayerInfo(self):
-        return ("ID: "+str(self.id)+"\nIP: "+str(self.ip)+"\nPORT: "+str(self.port)+"\n")
+        return ("ID: "+str(self.id)+"    IP: "+str(self.ip)+"    PORT: "+str(self.port))
