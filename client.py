@@ -22,10 +22,10 @@ threadRcv = None
 
 def choseNumber():
     print("Você tem 60 segundos para escolher, após isso será considerado AFK e perderá a partida")
-    print("Escolha um número de 1 a 10:")
+    print("Escolha um número de 0 a 10:")
     number = input()
-    while(int(number) < 1 or int(number) > 10):
-        print("Escolha um número de 1 a 10:")
+    while(int(number) < 0 or int(number) > 10):
+        print("Escolha um número de 0 a 10:")
         number = input()
     return number
 
@@ -111,15 +111,15 @@ def sendValue(valor, ips):
         while (attemptsTried < ATTEMPTS and not successful):
             if (i != MY_IP): # Evita que envie para si mesmo
                 destPlayer = (i, PORT_SND_VALUE)
-                print("Enviando " + msg + " para " + i + " na porta " + str(PORT_SND_VALUE) + "\n")
+                # print("Enviando " + msg + " para " + i + " na porta " + str(PORT_SND_VALUE) + "\n")
                 udpSend.sendto(msg.encode('utf-8'), destPlayer)
-                print("Enviado")
+                # print("Enviado")
                 # Aguarda ACK
                 try:
                     serverMsg, serverAddress = udpSend.recvfrom(2048)
                     msg = serverMsg.decode()
                     if (msg == "OK"):
-                        print("Sucesso")
+                        # print("Sucesso")
                         successful = True
                     else:
                         attemptsTried += 1
@@ -139,7 +139,7 @@ def receiveValue():
     udpRcv.settimeout(TIMEOUT_RCV)
     udpRcv.bind(orig)
     while (KNOWN_VALUES < len(allPlayers)): # Caso não conheça o valor de todos os jogadores, aguarda recebê-los 
-        print("Esperando: " + MY_IP + ", " + str(PORT_RCV_VALUE))
+        # print("Esperando: " + MY_IP + ", " + str(PORT_RCV_VALUE))
         # Espera receber um valor
         try:
             valor, address = udpRcv.recvfrom(2048)
