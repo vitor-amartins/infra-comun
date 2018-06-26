@@ -116,10 +116,10 @@ def sendValue(valor, ips):
 
 def receiveValue():
     global KNOWN_VALUES
-    while (KNOWN_VALUES < PEERS): # Caso não conheça o valor de todos os jogadores, aguarda recebê-los
-        orig = (MY_IP, PORT_RCV_VALUE)
-        udpRcv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        udpRcv.bind(orig)
+    orig = (MY_IP, PORT_RCV_VALUE)
+    udpRcv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udpRcv.bind(orig)
+    while (KNOWN_VALUES < PEERS): # Caso não conheça o valor de todos os jogadores, aguarda recebê-los 
         print("Esperando: " + MY_IP + ", " + str(PORT_RCV_VALUE))
         # Espera receber um valor
         valor, address = udpRcv.recvfrom(2048)
@@ -134,7 +134,7 @@ def receiveValue():
         msg = "OK"
         udpRcv.sendto(msg.encode('utf-8'), address)
         # Encerra este socket para poder esperar o próximo valor
-        udpRcv.close()
+    udpRcv.close()
 
 def getWinner():
     global allPlayers
