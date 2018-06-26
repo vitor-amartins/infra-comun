@@ -9,7 +9,7 @@ orig = (HOST, PORT)
 
 ID_PARTIDA = 0
 ID_JOGADOR = 0
-QNT_JOGADORES = 2
+QNT_JOGADORES = 4
 
 def updateStatusForPlayers(partida):
     msg = partida.getPlayers()
@@ -32,7 +32,7 @@ partida = None
 
 while True:
     data, (ip, port) = udp.recvfrom(1024)
-    player = Player(getPlayerID(), ip, port)
+    player = Player(getPlayerID(), ip, port, data.decode())
     dest = (ip, port)
     if (partida is None):
         partida = Match(getMatchID(), QNT_JOGADORES)

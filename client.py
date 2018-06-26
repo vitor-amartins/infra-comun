@@ -2,11 +2,12 @@ import socket
 import threading, time
 from Player import inGamePlayer
 
-HOST = '172.22.46.63'
+HOST = '172.20.4.87'
 PORT = 5000
 udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 dest = (HOST, PORT)
 
+# Alterar estes valores para padronizar (para o caso de vários jogadores)
 PORT_RCV_VALUE = 6000
 PORT_SND_VALUE = 6000
 KNOWN_VALUES = 1
@@ -17,15 +18,11 @@ ATTEMPTS = 3
 TIMEOUT_SEND = 5
 TIMEOUT_RCV = 60
 
-threadSend = None
-threadRcv = None
-
 def choseNumber():
-    print("Você tem 60 segundos para escolher, após isso será considerado AFK e perderá a partida")
-    print("Escolha um número de 0 a 10:")
+    print("Escolha um número de 1 a 10:")
     number = input()
-    while(int(number) < 0 or int(number) > 10):
-        print("Escolha um número de 0 a 10:")
+    while(int(number) < 1 or int(number) > 10):
+        print("Escolha um número de 1 a 10:")
         number = input()
     return number
 
@@ -43,8 +40,13 @@ def getPlayers(info, peers):
         while(info[j][i] != ' '):
             str2 += info[j][i]
             i += 1
+        i = info[j].find("Nome: ") + len("Nome: ")
+        str3 = ''
+        while(info[j][i] != ' '):
+            str3 += info[j][i]
+            i += 1
 
-        allPlayers.append(inGamePlayer(str1, str2))
+        allPlayers.append(inGamePlayer(str1, str2, str3))
         j += 1
         
     return allPlayers
@@ -103,32 +105,28 @@ def getIPWithoutValue():
 
 def sendValue(valor, ips):
     udpSend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udpSend.settimeout(TIMEOUT_SEND)
     msg = str(valor)
     for i in ips:
-        attemptsTried = 0
+        attempts = 0
         successful = False
-        while (attemptsTried < ATTEMPTS and not successful):
+        while (attempts < 6 and not successful):
             if (i != MY_IP): # Evita que envie para si mesmo
                 destPlayer = (i, PORT_SND_VALUE)
-                # print("Enviando " + msg + " para " + i + " na porta " + str(PORT_SND_VALUE) + "\n")
+                # print("Enviando " + msg + " para " + i + " na porta " + str(PORT_SND_VALUE))
                 udpSend.sendto(msg.encode('utf-8'), destPlayer)
                 # print("Enviado")
                 # Aguarda ACK
-                try:
-                    serverMsg, serverAddress = udpSend.recvfrom(2048)
-                    msg = serverMsg.decode()
-                    if (msg == "OK"):
-                        # print("Sucesso")
-                        successful = True
-                    else:
-                        attemptsTried += 1
-                except socket.timeout:
-                    attemptsTried += 1
-                    continue
+                serverMsg, serverAddress = udpSend.recvfrom(2048)
+                if (serverMsg.decode() == "OK"):
+                    # print("Sucesso")
+                    successful = True
+                else:
+                    time.sleep(5)
+                    attempts += 1
             else:
                 successful = True
         if not successful:
+            # Caso o IP não responde depois de 6 tentativas (30 segundos) será considerado como desconectado e removido da partida
             removePlayerByIP(i)
     udpSend.close()
 
@@ -138,10 +136,10 @@ def receiveValue():
     udpRcv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udpRcv.settimeout(TIMEOUT_RCV)
     udpRcv.bind(orig)
-    while (KNOWN_VALUES < len(allPlayers)): # Caso não conheça o valor de todos os jogadores, aguarda recebê-los 
+    while (KNOWN_VALUES < PEERS): # Caso não conheça o valor de todos os jogadores, aguarda recebê-los 
         # print("Esperando: " + MY_IP + ", " + str(PORT_RCV_VALUE))
-        # Espera receber um valor
         try:
+            # Espera receber um valor
             valor, address = udpRcv.recvfrom(2048)
             ip, port = address
             valor = valor.decode()
@@ -149,7 +147,7 @@ def receiveValue():
             if (getValueOnIP(ip) == None):
                 setValueOnIP(ip, int(valor))
                 KNOWN_VALUES += 1
-            print(ip, valor)
+            # print(ip, valor)
             # Envia um ACK confirmando o recebimento do valor daquele ip
             msg = "OK"
             udpRcv.sendto(msg.encode('utf-8'), address)
@@ -157,26 +155,27 @@ def receiveValue():
             ips = getIPWithoutValue()
             for i in ips:
                 removePlayerByIP(i)
-            continue
+        # Encerra este socket para poder esperar o próximo valor
     udpRcv.close()
 
 def getWinner():
+    print("Calculando vencedor...")
     global allPlayers
     sum = 0
     for i in allPlayers:
         sum += int(i.value)
-    print(sum)
+    # print(sum)
     idWinner = sum % len(allPlayers)
     idWinner += 1
-    print(idWinner)
+    # print(idWinner)
     for i in allPlayers:
         if(i.id == str(idWinner)):
             return i
 
-print("Deseja entrar no jogo? (Y / N)")
+print("Digite seu primeiro nome:")
 msg = str(input())
 
-if (msg == 'Y' or msg == 'y'):
+if (msg != ''):
     udp.sendto(msg.encode(), dest)
 
     while True:
@@ -198,21 +197,27 @@ if (msg == 'Y' or msg == 'y'):
             allPlayers = getPlayers(info, PEERS)
             ips = getListIP()
 
-            threadRcv = threading.Thread(target=receiveValue)
-            threadRcv.start()
+            thread2 = threading.Thread(target=receiveValue)
+            thread2.start()
 
             n = choseNumber()
             setValueOnIP(MY_IP, n)
 
-            threadSend = threading.Thread(target=sendValue, args=[n, ips])
-            threadSend.start()
+            thread1 = threading.Thread(target=sendValue, args=[n, ips])
+            thread1.start()
+            
 
-            while threadRcv.isAlive():
+            # Envia o seu valor aos outros jogadores
+            # sendValue(n, ips)
+            # Recebe os valores dos outros jogadores
+            # receiveValue()
+
+            while thread2.isAlive():
                 print("Recebendo os valores dos outros jogadores ...")
-                time.sleep(20)                    
+                time.sleep(20)
             # A partir deste ponto o usuário já pode definir o vencedor
 
-            while threadSend.isAlive():
+            while thread1.isAlive():
                 print("Aguardando os outros jogadores receberem o seu valor ...")
                 time.sleep(20)
             # A partir deste ponto todos os outros jogadores já sabem o valor escolhido por este usuário
@@ -220,6 +225,6 @@ if (msg == 'Y' or msg == 'y'):
             break
             
     win = getWinner()
-    print("ID: " + win.id + " IP: " + win.ip)
+    print("Vencedor: "+ win.name + " ID: " + win.id +" IP: " + win.ip)
 
 input()
