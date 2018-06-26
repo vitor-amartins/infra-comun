@@ -1,5 +1,5 @@
 import socket
-from Partida import Partida
+from Match import Match
 from Player import Player
     
 HOST = ''
@@ -17,12 +17,12 @@ def updateStatusForPlayers(partida):
         dest = (i.ip, i.port)
         udp.sendto(msg.encode('utf-8'), dest)
 
-def getIdPartida():
+def getMatchID():
     global ID_PARTIDA
     ID_PARTIDA += 1
     return ID_PARTIDA
 
-def getIdJogador():
+def getPlayerID():
     global ID_JOGADOR
     ID_JOGADOR += 1
     return ID_JOGADOR
@@ -32,10 +32,10 @@ partida = None
 
 while True:
     data, (ip, port) = udp.recvfrom(1024)
-    player = Player(getIdJogador(), ip, port)
+    player = Player(getPlayerID(), ip, port)
     dest = (ip, port)
     if (partida is None):
-        partida = Partida(getIdPartida(), QNT_JOGADORES)
+        partida = Match(getMatchID(), QNT_JOGADORES)
         partida.addPlayer(player)
         updateStatusForPlayers(partida)
     else:
@@ -43,8 +43,13 @@ while True:
             partida.addPlayer(player)
             updateStatusForPlayers(partida)
         else:
-            msg = "Jogo está cheio"
-            udp.sendto(msg.encode('utf-8'), dest)
+            # msg = "Jogo está cheio"
+            # udp.sendto(msg.encode('utf-8'), dest)
             # Substituir por criar outra partida
+            ID_JOGADOR = 0
+            player.id = getPlayerID()
+            partida = Match(getMatchID(), QNT_JOGADORES)
+            partida.addPlayer(player)
+            updateStatusForPlayers(partida)
 udp.close()
 

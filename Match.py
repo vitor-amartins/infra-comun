@@ -1,4 +1,4 @@
-class Partida:
+class Match:
     def __init__(self, id, maxP):
         self.id = id
         self.players = []
